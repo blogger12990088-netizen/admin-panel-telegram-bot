@@ -1,91 +1,395 @@
-# Admin Panel Telegram Bot
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daily Rewards</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      text-align: center;
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+      width: 350px;
+      border: 1px solid #333;
+      max-height: 95vh;
+      overflow-y: auto;
+    }
+    .container h1 {
+      font-size: 22px;
+      color: #FFD700;
+      margin-bottom: 10px;
+      text-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
+    }
+    .developer {
+      font-size: 12px;
+      background-color: #4CAF50;
+      padding: 5px 10px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      display: inline-block;
+      color: white;
+    }
+    .stats p {
+      margin: 5px 0;
+      font-size: 14px;
+      color: #FFD700;
+    }
+    .progress-circle {
+      width: 80px;
+      height: 80px;
+      border: 4px solid #FFD700;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 10px auto;
+    }
+    .progress-circle span {
+      font-size: 18px;
+      font-weight: bold;
+      color: #FFD700;
+    }
+    .buttons button {
+      width: 95%;
+      margin: 5px 0;
+      padding: 12px;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    #watch-ad-btn { background: #FFD700; color:#000; }
+    #youtube-btn { background: #FF0000; color: #fff; }
+    #telegram-btn { background: #0088cc; color: #fff; }
+    #withdraw-btn { background: orange; color:#000; }
+    #support-btn { background: #0088cc; color:#fff; display:flex; align-items:center; justify-content:center; gap:8px; }
+    #support-btn img { width:20px; height:20px; }
+    .buttons button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+    }
+    .withdraw-section {
+      margin-top: 20px;
+      display: none;
+      padding: 15px;
+      background-color: #111;
+      border-radius: 10px;
+      border: 1px solid #333;
+    }
+    .withdraw-section input, select {
+      width: 90%;
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 6px;
+      border: none;
+      text-align: center;
+    }
+    .refer-box {
+      margin-top: 15px;
+      background:#222;
+      padding:10px;
+      border-radius:8px;
+    }
+    .refer-box button {
+      background:#FFD700;
+      border:none;
+      padding:5px 10px;
+      margin-left:5px;
+      border-radius:5px;
+      cursor:pointer;
+    }
+    .history-box {
+      margin-top: 20px;
+      background:#222;
+      padding:10px;
+      border-radius:8px;
+      text-align:left;
+      font-size:13px;
+      max-height:150px;
+      overflow-y:auto;
+    }
+    .history-box h4 {
+      margin:0 0 10px;
+      color:#FFD700;
+    }
+    .history-item {
+      margin-bottom: 6px;
+      padding: 6px;
+      background:#111;
+      border-radius:5px;
+      border:1px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Daily Rewards</h1>
+    <div class="developer">Developed by TBPYC</div>
+    <p>Welcome, <span id="user-name"></span></p>
+    <div class="stats">
+      <p>প্রতি বিজ্ঞাপন: <span id="per-ad-rate">0.10</span> টাকা</p>
+      <p>Watched Ads: <span id="watched-ads">0</span></p>
+      <p>Total Ads Seen (Lifetime): <span id="lifetime-ads">0</span></p>
+      <p>Balance: <span id="earned-points">0.00</span> টাকা</p>
+      <p>👥 Referrals: <span id="total-refers">0</span></p>
+      <p>💰 Referral Income: <span id="ref-income">0.00</span> টাকা</p>
+    </div>
+    <div class="progress-circle">
+      <span id="ads-progress">0%</span>
+    </div>
+    <div class="buttons">
+      <button id="watch-ad-btn" onclick="watchAd()">📺 বিজ্ঞাপন দেখুন</button>
+      <button id="youtube-btn" onclick="subscribeYoutube()">▶️ Subscribe YouTube (2 টাকা)</button>
+      <button id="telegram-btn" onclick="joinTelegram()">📢 Join Telegram (2 টাকা)</button>
+      <button id="withdraw-btn" onclick="showWithdrawForm()">💵 Withdrawal Request</button>
+      <button id="support-btn" onclick="openSupport()">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg"/> Support
+      </button>
+    </div>
+    <div class="refer-box">
+      <p>🔗 Your Referral Link (প্রতি রেফারে ৩ টাকা, Withdraw করতে মিনিমাম ৫ রেফার আবশ্যক):</p>
+      <input type="text" id="ref-link" readonly>
+      <button onclick="copyRefer()">Copy</button>
+    </div>
+    <div id="withdraw-section" class="withdraw-section">
+      <h3>Withdraw</h3>
+      <input type="number" id="withdraw-amount" placeholder="Minimum 100 টাকা" min="100">
+      <select id="payment-method">
+        <option value="Bkash">Bkash</option>
+        <option value="Nagad">Nagad</option>
+      </select>
+      <input type="text" id="withdraw-phone" placeholder="Phone Number">
+      <button onclick="withdrawPoints()">Confirm Withdraw</button>
+      <p id="withdraw-status"></p>
+    </div>
+    <div class="history-box" id="withdraw-history">
+      <h4>Withdraw History</h4>
+      <div id="history-list"></div>
+    </div>
+  </div>
 
-Admin Panel Telegram Bot is a Python Django application that provides an admin panel to manage and control a Telegram bot. This admin panel offers various features to efficiently manage the bot and interact with its users.
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src='//libtl.com/sdk.js' data-zone='9840613' data-sdk='show_9840613'></script>
 
-## Features
+  <script>
+  const ADMIN_USER_ID = "7850506878";  
+  const BOT_TOKEN = "YOUR_BOT_TOKEN_HERE";
 
-1. **Sending Message to Specific User**: The admin can use the admin panel to send messages to specific users of the Telegram bot. This feature allows personalized communication and targeted messaging.
+  let MAX_DAILY_ADS = 150;
+  let REWARD_PER_AD = 0.10;   // ✅ প্রতি বিজ্ঞাপন ০.১০ টাকা
+  const REF_REWARD = 3.00;
 
-2. **Sending Announcement to All Users**: The admin panel enables the admin to send announcements to all users of the Telegram bot. This feature is useful for broadcasting important information or updates to a large audience.
+  let telegramUID = "unknownUser";
+  if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe.user) {
+    telegramUID = Telegram.WebApp.initDataUnsafe.user.id;
+  }
 
-3. **User Search**: The admin can easily search for a specific user using the admin panel. This feature allows quick access to user information and facilitates targeted actions or support.
+  const urlParams = new URLSearchParams(window.location.search);
+  const refBy = urlParams.get('start');
 
-4. **View Statistics of Users**: The admin panel provides statistical insights into the bot's user activity. It displays daily and monthly graphs/charts to visualize the usage trends and patterns. Additionally, it also provides the total number of users.
+  if (!localStorage.getItem('user_initialized_' + telegramUID)) {
+    localStorage.setItem('watchedAdsCount_' + telegramUID, 0);
+    localStorage.setItem('lifetimeAdsCount_' + telegramUID, 0);
+    localStorage.setItem('earnedPoints_' + telegramUID, 0);
+    localStorage.setItem('youtubeBonusTaken_' + telegramUID, false);
+    localStorage.setItem('telegramBonusTaken_' + telegramUID, false);
+    localStorage.setItem('withdrawHistory_' + telegramUID, JSON.stringify([]));
+    localStorage.setItem('totalRefers_' + telegramUID, 0);
+    localStorage.setItem('refIncome_' + telegramUID, 0);
+    localStorage.setItem('user_initialized_' + telegramUID, true);
 
-## Technologies Used
+    if (refBy && refBy !== String(telegramUID)) {
+        getReferralReward(refBy, telegramUID);
+    }
+  }
 
-- Python
-- Django
-- Telegram Bot API
+  document.getElementById("user-name").textContent = `UID: ${telegramUID}`;
+  document.getElementById("ref-link").value = `https://t.me/DailyRewards999_bot?start=${telegramUID}`;
+  document.getElementById("per-ad-rate").textContent = REWARD_PER_AD.toFixed(2);
 
-## Installation
+  let watchedAdsCount = parseInt(localStorage.getItem("watchedAdsCount_" + telegramUID)) || 0;
+  let lifetimeAdsCount = parseInt(localStorage.getItem("lifetimeAdsCount_" + telegramUID)) || 0;
+  let earnedPoints = parseFloat(localStorage.getItem("earnedPoints_" + telegramUID)) || 0.00;
+  let totalRefers = parseInt(localStorage.getItem("totalRefers_" + telegramUID) || 0);
+  let refIncome = parseFloat(localStorage.getItem("refIncome_" + telegramUID) || 0.00);
+  let youtubeBonusTaken = localStorage.getItem("youtubeBonusTaken_" + telegramUID) === "true";
+  let telegramBonusTaken = localStorage.getItem("telegramBonusTaken_" + telegramUID) === "true";
+  let withdrawHistory = JSON.parse(localStorage.getItem("withdrawHistory_" + telegramUID) || "[]");
 
-1. Clone the repository:
+  const today = new Date().toLocaleDateString();
+  const savedDate = localStorage.getItem("lastDate_" + telegramUID) || "";
+  if (savedDate !== today) {
+    watchedAdsCount = 0;
+    localStorage.setItem("watchedAdsCount_" + telegramUID, 0);
+    localStorage.setItem("lastDate_" + telegramUID, today);
+  }
 
-   ```shell
-   git clone https://github.com/usmanf07/admin-panel-telegram-bot.git
-   ```
+  updateStats();
+  renderHistory();
+  updateReferralUI();
 
-2. Change into the project directory:
-    ```
-    cd admin-panel-telegram-bot
-    ```
-3. Create and activate a virtual environment (optional but recommended):
-    ```
-    python3 -m venv env
-    source env/bin/activate
-    ```
-4. Install the dependencies:
-    ```
-    pip install -r requirements.txt
-    ```
-5. Configure the Telegram bot token:
+  function watchAd() {
+    if (watchedAdsCount >= MAX_DAILY_ADS) {
+      alert("❌ আজকের limit শেষ হয়েছে। আগামীকাল আবার চেষ্টা করুন!");
+      return;
+    }
+    if (typeof show_9840613 === 'function') {
+      show_9840613();
+      setTimeout(() => {
+        watchedAdsCount++;
+        lifetimeAdsCount++;
+        earnedPoints += REWARD_PER_AD;
+        saveData();
+        updateStats();
+      }, 15000);
+    }
+  }
 
-- Open the `authentication/telegram_utils.py` file.
-- Replace `YOUR_TELEGRAM_BOT_TOKEN` with your actual Telegram bot token in the `TOKEN` variable.
-- Also open the `core/main.py` file.
-- Replace `YOUR_TELEGRAM_BOT_TOKEN` with your actual Telegram bot token in the `TOKEN` variable.
+  function subscribeYoutube() {
+    if (youtubeBonusTaken) { alert("❌ YouTube Bonus Already Collected!"); return; }
+    window.open("https://youtube.com/@tacktipsbangla", "_blank");
+    earnedPoints += 2.00;
+    youtubeBonusTaken = true;
+    localStorage.setItem("youtubeBonusTaken_" + telegramUID, "true");
+    saveData();
+    updateStats();
+  }
 
-6. Create sqlite DB and Apply the database migrations:
-    ```
-    Create the database named 'admin.db'
-    python manage.py migrate
-    ```
+  function joinTelegram() {
+    if (telegramBonusTaken) { alert("❌ Telegram Bonus Already Collected!"); return; }
+    window.open("https://t.me/EarningSupport998", "_blank");
+    earnedPoints += 2.00;
+    telegramBonusTaken = true;
+    localStorage.setItem("telegramBonusTaken_" + telegramUID, "true");
+    saveData();
+    updateStats();
+  }
 
-7. Run the development server:
-    ```
-    python manage.py runserver
-    ```
+  function openSupport() { window.open("https://t.me/Mysupportid100", "_blank"); }
+  function showWithdrawForm() { document.getElementById("withdraw-section").style.display = "block"; }
 
-8. Run the bot server:
+  function withdrawPoints() {
+    const amount = document.getElementById('withdraw-amount').value;
+    const method = document.getElementById('payment-method').value;
+    const phone = document.getElementById('withdraw-phone').value;
 
-- Open the `core` folder.
-```
-python main.py
-```
+    if (amount < 100) {
+      document.getElementById("withdraw-status").textContent = "❌ Minimum 100 টাকা হতে হবে।";
+      return;
+    }
+    if (amount > earnedPoints) {
+      document.getElementById("withdraw-status").textContent = "❌ পর্যাপ্ত Balance নেই।";
+      return;
+    }
+    if (!youtubeBonusTaken || !telegramBonusTaken) {
+      document.getElementById("withdraw-status").textContent = "❌ Withdraw করতে হলে অবশ্যই YouTube ও Telegram join করতে হবে।";
+      return;
+    }
+    if (totalRefers < 5) {
+      document.getElementById("withdraw-status").textContent = "❌ Withdraw করতে হলে অন্তত ৫ জনকে রেফার করতে হবে।";
+      return;
+    }
 
-## Usage
+    const msg = `🟡 Withdraw Request 🟡
+🆔 UID: ${telegramUID}
+💰 Amount: ${amount} টাকা
+📱 Method: ${method}
+📞 Number: ${phone}
+🕒 ${new Date().toLocaleString()}`;
+    
+    sendTelegram(msg);
 
-1. Access the admin panel by logging in with your admin credentials.
-![login](https://i.ibb.co/jM6ktGB/image.png)
-2. Use the various features provided by the admin panel to manage your Telegram bot efficiently.
-![home](https://i.ibb.co/nR6bvkf/image.png)
-3. Explore user statistics, send messages or announcements, search for users, and more.
-![stats](https://i.ibb.co/ygw6PGN/image.png)
-![messages](https://i.ibb.co/GTBQhm6/image.png)
-## Contributing
+    earnedPoints -= parseFloat(amount);
+    withdrawHistory.push({ amount, method, phone, time: new Date().toLocaleString() });
+    saveData();
+    updateStats();
+    renderHistory();
+    document.getElementById("withdraw-status").textContent = "✅ Withdraw Request Sent!";
+  }
 
-Contributions are welcome! If you would like to contribute to this project, please follow these steps:
+  function renderHistory() {
+    const list = document.getElementById("history-list");
+    list.innerHTML = "";
+    withdrawHistory.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "history-item";
+      div.textContent = `${item.time} | ${item.amount} টাকা | ${item.method} (${item.phone})`;
+      list.appendChild(div);
+    });
+  }
 
-1. Fork the repository.
-2. Create a new branch for your contribution.
-3. Make your changes and commit them.
-4. Push your changes to your forked repository.
-5. Submit a pull request explaining your changes.
+  function updateStats() {
+    document.getElementById("watched-ads").textContent = watchedAdsCount + "/" + MAX_DAILY_ADS;
+    document.getElementById("earned-points").textContent = earnedPoints.toFixed(2);
+    document.getElementById("lifetime-ads").textContent = lifetimeAdsCount;
+    const percentage = Math.min((watchedAdsCount / MAX_DAILY_ADS) * 100, 100);
+    document.getElementById("ads-progress").textContent = `${Math.floor(percentage)}%`;
+  }
 
-## Acknowledgements
+  function updateReferralUI() {
+    document.getElementById("total-refers").textContent = totalRefers;
+    document.getElementById("ref-income").textContent = refIncome.toFixed(2);
+  }
 
-- This project was inspired by the need for an efficient admin panel to manage Telegram bots.
-- We would like to thank the Python, Django, and Telegram Bot API communities for their excellent documentation and resources.
+  function saveData() {
+    localStorage.setItem("watchedAdsCount_" + telegramUID, watchedAdsCount);
+    localStorage.setItem("lifetimeAdsCount_" + telegramUID, lifetimeAdsCount);
+    localStorage.setItem("earnedPoints_" + telegramUID, earnedPoints.toFixed(2));
+    localStorage.setItem("totalRefers_" + telegramUID, totalRefers);
+    localStorage.setItem("refIncome_" + telegramUID, refIncome.toFixed(2));
+    localStorage.setItem("withdrawHistory_" + telegramUID, JSON.stringify(withdrawHistory));
+  }
 
+  function copyRefer() {
+    const copyText = document.getElementById("ref-link");
+    copyText.select();
+    document.execCommand("copy");
+    alert("Referral Link Copied!");
+  }
 
+  function sendTelegram(message) {
+    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: ADMIN_USER_ID, text: message })
+    });
+  }
+
+  function getReferralReward(referrerId, newUserUID) {
+    let referrer_totalRefers = parseInt(localStorage.getItem("totalRefers_" + referrerId)) || 0;
+    let referrer_refIncome = parseFloat(localStorage.getItem("refIncome_" + referrerId)) || 0.00;
+    let referrer_earnedPoints = parseFloat(localStorage.getItem("earnedPoints_" + referrerId)) || 0.00;
+    
+    referrer_totalRefers++;
+    referrer_refIncome += REF_REWARD;
+    referrer_earnedPoints += REF_REWARD;
+    
+    localStorage.setItem("totalRefers_" + referrerId, referrer_totalRefers);
+    localStorage.setItem("refIncome_" + referrerId, referrer_refIncome.toFixed(2));
+    localStorage.setItem("earnedPoints_" + referrerId, referrer_earnedPoints.toFixed(2));
+    
+    const refMsg = `👥 New Referral Added!
+🔗 Referrer UID: ${referrerId}
+🆕 New User UID: ${newUserUID}
+💰 Reward: ${REF_REWARD} টাকা`;
+    sendTelegram(refMsg);
+  }
+  </script>
+</body>
+</html>
